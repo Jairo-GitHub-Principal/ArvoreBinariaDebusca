@@ -1,0 +1,148 @@
+#include <iostream>
+#include "arvoreBinariaBusca.h"
+
+using namespace std;
+
+    ArvoreBB::ArvoreBB(){
+        raiz = NULL;
+    }
+    ArvoreBB::~ArvoreBB(){ // implementar depois de percurso
+        deletarArvore(raiz);
+    }
+    void ArvoreBB:: deletarArvore(No* Noatual){ // implementar depois de percurso
+        if(Noatual!=NULL){
+            deletarArvore(Noatual->filhoesquerda);
+            deletarArvore(Noatual->filhodireita); 
+            delete Noatual;  
+        }
+    }
+    No*ArvoreBB::obterRaiz(){
+        return raiz;
+    }
+    bool ArvoreBB::estaVazio(){
+        return(raiz == NULL);
+    }
+    bool ArvoreBB::estaCheio(){
+        try{
+            No* temp = new No;
+            delete temp;
+            return false;
+        }catch(bad_alloc exception){
+            return true;
+        }
+    }
+    void ArvoreBB::inserir(Aluno aluno){
+        if(estaCheio()==true){
+            cout << "A arvore esta cheia!\n";
+            cout << "Não foi possiveo inserir esse elemento\n";
+
+        }else{
+            No* NoNovo = new No;
+            NoNovo->aluno = aluno;
+            NoNovo->filhodireita = NULL;
+            NoNovo->filhoesquerda= NULL;
+
+            if(raiz == NULL){
+                raiz = NoNovo;
+            }else{
+                No* temp = raiz;
+                while (temp != NULL){
+                    if(aluno.obterRa() < temp->aluno.obterRa()){
+                        if(temp->filhoesquerda == NULL){
+                            temp->filhoesquerda = NoNovo;
+                            break;
+                        }else{
+                            temp = temp->filhoesquerda;
+                        }
+                    }else{
+                        if(temp->filhodireita == NULL){
+                            temp->filhodireita = NoNovo;
+                        }else{
+                            temp = temp->filhodireita;
+                        }
+                    }
+                }
+                
+            }
+
+        }
+    }
+    void ArvoreBB::remover(Aluno aluno){
+        removerbusca(aluno,raiz);
+    }
+      void  ArvoreBB::removerbusca(Aluno aluno, No*& noatual){
+            if(aluno.obterRa() < noatual->aluno.obterRa()){
+                removerbusca(aluno,noatual->filhoesquerda);
+            }else if(aluno.obterRa() > noatual->aluno.obterRa()){
+                removerbusca(aluno,noatual->filhodireita);
+            }else{
+                deletarNo(noatual);
+            }
+      }
+    void  ArvoreBB::deletarNo(No*& noatual){
+        No* temp = noatual;
+        if(noatual->filhoesquerda == NULL){ // se o filho da esquerda for null, vamos para a direita e deletar o filho a diireita
+            noatual = noatual->filhodireita;
+            delete temp;
+        }else if(noatual->filhodireita == NULL){
+            noatual = noatual->filhoesquerda;
+            delete temp;
+        }else{
+            Aluno alunoSucessor;
+            obterSucessor(alunoSucessor,noatual);
+            noatual->aluno = alunoSucessor;
+            removerbusca(alunoSucessor,noatual->filhodireita);
+        }
+
+    }
+    void  ArvoreBB::obterSucessor(Aluno& alunoSucessor,No* temp){
+        temp = temp->filhoesquerda;
+        while (temp->filhoesquerda != NULL)
+        {
+             temp = temp->filhoesquerda;
+        }
+         alunoSucessor = temp->aluno;
+        
+    }
+    void ArvoreBB::buscar(Aluno& aluno, bool& buscar){
+        buscar = false;
+        No* Noatual = raiz;
+        while (Noatual !=NULL)
+        {           
+            if(aluno.obterRa() < Noatual->aluno.obterRa()){
+                Noatual = Noatual->filhoesquerda;
+            }else if(aluno.obterRa() > Noatual->aluno.obterRa()){
+                Noatual = Noatual->filhodireita;
+            }else{
+                buscar = true;
+                aluno = Noatual->aluno;
+                break;
+            }
+        }
+        
+
+    }
+    void ArvoreBB::imprimirpreordem(No* Noatual){
+         if(Noatual != NULL){
+            cout << Noatual->aluno.obterNome()<< " : ";
+            cout << Noatual->aluno.obterRa()<< endl;
+            imprimirpreordem(Noatual->filhoesquerda);
+            imprimirpreordem(Noatual->filhodireita);
+         }
+
+    }
+    void ArvoreBB::imprimirEmOrdem(No* Noatual){
+        imprimirEmOrdem(Noatual->filhoesquerda);
+        cout << Noatual->aluno.obterNome()<< " : ";
+        cout << Noatual->aluno.obterRa()<< endl;
+        imprimirEmOrdem(Noatual->filhodireita);
+
+    }
+    void ArvoreBB::imprimirPosOrdem(No* Noatual){
+        if(Noatual != NULL){
+            imprimirPosOrdem(Noatual->filhoesquerda);
+            imprimirPosOrdem(Noatual->filhodireita);
+            cout << Noatual->aluno.obterNome()<< " : ";
+            cout << Noatual->aluno.obterRa()<< endl;
+        }
+    }

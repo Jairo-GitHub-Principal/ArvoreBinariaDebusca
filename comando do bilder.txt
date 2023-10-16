@@ -1,0 +1,1 @@
+g++ main_arvoreBB.cpp arvoreBinariaBusca.cpp aluno.cpp -o arvoreBB.exe
