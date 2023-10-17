@@ -33,64 +33,76 @@ using namespace std;
             return true;
         }
     }
-    void ArvoreBB::inserir(Aluno aluno){
-         if (estaCheio()){
-            cout << "A Arvore esta cheia!\n";
-            cout << "Nao foi possivel inserir este elemento!\n";
-        } else{
-            No* NoNovo = new No;
-            NoNovo->aluno = aluno;
-            NoNovo->filhodireita = NULL;
-            NoNovo->filhoesquerda = NULL;
-            if (raiz == NULL){
-                raiz = NoNovo;
-            } else{
-                No* temp = raiz;
-                while (temp != NULL){
-                    if (aluno.obterRa() < temp->aluno.obterRa()){
-                        if (temp->filhoesquerda == NULL){
-                            temp->filhoesquerda = NoNovo;
-                            break;
-                        } else{
-                            temp = temp->filhoesquerda;
-                        }
-                    } else{
-                        if (temp->filhodireita == NULL){
-                            temp->filhodireita = NoNovo;
-                            break;
-                        } else{
-                            temp = temp->filhodireita;
-                        }
-                    }
-                }
-            }
+    void ArvoreBB::inserir(Aluno alunoNovo){
+        bool cresceu;
+        insererecursivo(raiz, alunoNovo, cresceu);
+        
+    }
+    void ArvoreBB::insererecursivo(No*& noatual,Aluno aluno,bool& cresceu){
+          // novo
+        if (noatual == NULL) {
+            noatual = new No;
+            noatual->filhodireita = NULL;
+            noatual->filhoesquerda = NULL;
+            noatual->aluno = aluno;
+            noatual->fatorB = 0;
+            cresceu = true;
+            return;
+        }  
+        if (aluno.obterRa() < noatual->aluno.obterRa()) {
+            insererecursivo(noatual->filhoesquerda, aluno, cresceu);
+            if (cresceu){
+                noatual->fatorB-=1;   
+            } 
+        } else {
+            insererecursivo(noatual->filhodireita, aluno, cresceu);
+            if (cresceu){
+                noatual->fatorB+=1;
+            }    
+        } 
+        realizarotacao(noatual);
+
+        if (cresceu && noatual->fatorB == 0){
+            cresceu = false;
         }
     }
     void ArvoreBB::remover(Aluno aluno){
-        removerbusca(aluno,raiz);
+          bool diminuiu;
+        removerbusca(aluno,raiz,diminuiu);
     }
-      void  ArvoreBB::removerbusca(Aluno aluno, No*& noatual){
+      void  ArvoreBB::removerbusca(Aluno aluno, No*& noatual,bool& diminuiu){
             if(aluno.obterRa() < noatual->aluno.obterRa()){
-                removerbusca(aluno,noatual->filhoesquerda);
+                removerbusca(aluno,noatual->filhoesquerda,diminuiu);
+                if (diminuiu){
+                noatual->fatorB+=1;
+            }
             }else if(aluno.obterRa() > noatual->aluno.obterRa()){
-                removerbusca(aluno,noatual->filhodireita);
+                removerbusca(aluno,noatual->filhodireita,diminuiu);
+                 if (diminuiu){
+                noatual->fatorB-=1;
+            }
             }else{
-                deletarNo(noatual);
+                deletarNo(noatual,diminuiu);
             }
       }
-    void  ArvoreBB::deletarNo(No*& noatual){
+    void  ArvoreBB::deletarNo(No*& noatual,bool& diminuiu){
         No* temp = noatual;
         if(noatual->filhoesquerda == NULL){ // se o filho da esquerda for null, vamos para a direita e deletar o filho a diireita
             noatual = noatual->filhodireita;
+            diminuiu = true;
             delete temp;
         }else if(noatual->filhodireita == NULL){
             noatual = noatual->filhoesquerda;
+            diminuiu = true;
             delete temp;
         }else{
             Aluno alunoSucessor;
             obterSucessor(alunoSucessor,noatual);
             noatual->aluno = alunoSucessor;
-            removerbusca(alunoSucessor,noatual->filhodireita);
+            removerbusca(alunoSucessor,noatual->filhodireita,diminuiu);
+             if (diminuiu){
+                noatual->fatorB-=1;
+            }
         }
 
     }
@@ -147,3 +159,98 @@ using namespace std;
             cout << Noatual->aluno.obterRa() << endl;
         }
     }
+
+     void ArvoreBB::rotacaodireita(No*& pai) //novo
+    {
+        No* novopai = pai->filhoesquerda;
+        pai->filhoesquerda = novopai->filhodireita;
+        novopai->filhodireita = pai;
+        pai = novopai;
+    }
+
+     void ArvoreBB::rotacaoesquerda(No*& pai) //novo
+    {
+        No* novopai = pai->filhodireita;
+        pai->filhodireita = novopai->filhoesquerda;
+        novopai->filhoesquerda = pai;
+        pai = novopai;
+    }
+
+     void ArvoreBB::rotacaoesquerdadireita(No*& pai)
+    {
+        No* filho = pai->filhoesquerda;
+        rotacaoesquerda(filho);
+        pai->filhoesquerda = filho;
+        rotacaodireita(pai);
+    }
+
+
+    void ArvoreBB::rotacaodireitaesquerda(No*& pai)
+    {
+        No* filho = pai->filhodireita;
+        rotacaodireita(filho);
+        pai->filhodireita = filho;
+        rotacaoesquerda(pai);
+    }
+
+    void ArvoreBB::realizarotacao(No*& pai)
+    {
+        No* filho;
+        No* neto; // Caso precise da rotação dupla
+
+        if (pai->fatorB == -2){ //rotaciona para a direita
+
+                filho = pai->filhoesquerda;
+
+                if (filho->fatorB == -1){ // Simples para a direita
+                    pai->fatorB = 0;
+                    filho->fatorB = 0;
+                    rotacaodireita(pai);
+                } else if (filho->fatorB == 0){ // Simples para a direita
+                    pai->fatorB = -1;
+                    filho->fatorB = 1;
+                    rotacaodireita(pai);
+                } else if (filho->fatorB == 1){ // Rotação dupla
+                    neto = filho->filhodireita;
+                    if (neto->fatorB == -1){
+                        pai->fatorB = 1;
+                        filho->fatorB = 0;
+                    } else if (neto->fatorB == 0){
+                        pai->fatorB = 0;
+                        filho->fatorB = 0;                
+                    } else if (neto->fatorB == 1){
+                        pai->fatorB = 0;
+                        filho->fatorB = -1;                
+                    }
+                    neto->fatorB = 0; 
+                    rotacaodireitaesquerda(pai);            
+                }
+
+
+        } else if(pai->fatorB == 2){ //rotaciona para a esquerda
+                    filho = pai->filhodireita;
+                    if (filho->fatorB == 1) { // Simples para a esquerda
+                        pai->fatorB = 0;
+                        filho->fatorB = 0;
+                        rotacaoesquerda(pai);
+                    } else if (filho->fatorB == 0){ // Simples para a esquerda         
+                        pai->fatorB = 1;
+                        filho->fatorB = -1;
+                        rotacaoesquerda(pai);
+                    } else if (filho->fatorB == -1){ // Rotacao dupla
+                        neto = filho->filhoesquerda;
+                        if (neto->fatorB == -1){
+                            pai->fatorB =  0;
+                            filho->fatorB = 1; 
+                        } else if (neto->fatorB == 0){
+                            pai->fatorB =  0;
+                            filho->fatorB = 0; 
+                        } else if (neto->fatorB == 1){
+                            pai->fatorB =  -1;
+                            filho->fatorB = 0; 
+                        }
+                        neto->fatorB = 0;
+                        rotacaodireitaesquerda(pai);
+                    }
+        }
+    }                  
